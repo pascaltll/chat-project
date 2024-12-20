@@ -1,30 +1,30 @@
-# chat-project
-
-Es un chat grupal que permite enviar mensajes a una sala comund, tambien permite interacutar con un identificador de numeros de 0 a 9, le resultado se envia en el chat comun
-
-Luego de inicar secion, puedes escribir el nombre de la sala comun, tabien puedes cambiar la foto de pefil
+# Chat Project
 
 
-construir la imagen:
+
+This is a group chat application that allows users to send messages to a common room. It also enables interaction with a number identifier ranging from 0 to 9, with the results sent to the common chat.
+
+After logging in, you can enter the name of the common room, as well as change your profile picture.
+
+To build the image, use the following command:
 
 ```cmd
 docker build -t elchat_image .
 ```
 
-verificar si tflow esta intalado conrrectamente
+To verify that TensorFlow is installed correctly, run:
 
 ```cmd
 docker run -it --rm elchat_image bash
 ```
 
-
-inicar el servicio
+To start the service, execute:
 
 ```cmd
 
 docker run -it --rm -p 8000:8000 elchat_image
 ```
 
-link
+Access the chat application at:link
 
 http://localhost:8000

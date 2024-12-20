@@ -1,10 +1,10 @@
+psycopg2-binary==2.9.10
 tensorflow==2.18.0
 numpy==2.0.2
-psycopg2-binary==2.9.10
 asgiref==3.5.2
 certifi==2022.5.18.1
 charset-normalizer==2.0.12
-Django
+Django==4.1.13
 docopt==0.6.2
 idna==3.3
 requests==2.27.1
@@ -12,9 +12,9 @@ sqlparse==0.4.2
 urllib3==1.26.9
 yarg==0.1.9
 channels==3.0.5
-django-crispy-forms
-Pillow
-crispy-bootstrap4
+django-crispy-forms==2.0
+pillow==11.0.0
+crispy-bootstrap4==2022.1
 
 
 
