@@ -1,0 +1,138 @@
+{% block content %}
+<div class="content-section">
+    <h3 class="text-center">{{ room_name }}</h3>
+    
+    <div id="chat-log-container" 
+        class="container bg-light p-3 rounded-sm border rounded overflow-auto"
+        style="height: 480px; overflow-y:auto">
+        <div id="chat-log">
+            {% if db_messages %}
+            {% for m in db_messages %}
+            <div class="media content-section">
+                <img class="rounded-circle article-img" src="{{ m.profile_pic }}" />
+                <div class="media-body">
+                    <div class="article-metadata">
+                        <span class="mr-2">{{ m.username }}</span>
+                    </div>
+                    <p class="article-content">{{ m.message_content }}</p>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+            <script>
+                let myDiv = document.getElementById("chat-log-container");
+                myDiv.scrollTop = myDiv.scrollHeight;
+            </script>
+        </div>
+    </div>
+
+    <br />
+    <input class="form-control" id="chat-message-input" type="text" size="100" /><br />
+    <input class="form-control" id="chat-message-submit" type="button" value="Send" />
+
+    <br />
+    <h5>Reconocimiento de Números</h5>
+    <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+        <canvas id="drawingCanvas" width="280" height="280" style="border:1px solid #000;"></canvas>
+        <br />
+        <button id="clearCanvasButton" class="btn btn-secondary mt-2">Clean</button>
+        <button id="recognizeButton" class="btn btn-primary mt-2">Show me the Magic</button>
+    </div>
+    <p id="recognizedNumber" class="mt-3 text-success"></p>
+
+    {% block scripts %}
+    {{ room_name|json_script:"room-name" }}
+    {{ request.user.username|json_script:"user-name" }}
+    {{ request.user.profile.image.url|json_script:"profile-pic" }}
+    
+    <script>
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        const userName = JSON.parse(document.getElementById('user-name').textContent);
+        const profilePic = JSON.parse(document.getElementById('profile-pic').textContent);
+
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+        );
+
+        chatSocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            if (data.message) {
+                let html = '<div class="media content-section">';
+                html += '<img class="rounded-circle article-img" src="' + data.profile_pic + '" />';
+                html += '<div class="media-body">';
+                html += '<div class="article-metadata">';
+                html += '<span class="mr-2">' + data.username + '</span>';
+                html += '</div>';
+                html += '<p class="article-content">' + data.message + '</p>';
+                html += '</div>';
+                html += '</div>';
+                document.querySelector('#chat-log').innerHTML += html;
+
+                let myDiv = document.getElementById("chat-log-container");
+                myDiv.scrollTop = myDiv.scrollHeight;
+            } else {
+                alert("Message was empty");
+            }
+        };
+
+        chatSocket.onclose = function (e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function (e) {
+            if (e.keyCode === 13) {
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function (e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(
+                JSON.stringify({
+                    message: message,
+                    username: userName,
+                    profile_pic: profilePic,
+                    room: roomName,
+                })
+            );
+            messageInputDom.value = '';
+        };
+
+        // Reconocimiento de Números
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        canvas.addEventListener('mousedown', () => (isDrawing = true));
+        canvas.addEventListener('mouseup', () => (isDrawing = false));
+        canvas.addEventListener('mousemove', draw);
+
+        function draw(event) {
+            if (!isDrawing) return;
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(event.offsetX, event.offsetY, 5, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        document.getElementById('clearCanvasButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('recognizeButton').addEventListener('click', () => {
+            const dataURL = canvas.toDataURL('image/png');
+            chatSocket.send(
+                JSON.stringify({
+                    image: dataURL,
+                    username: userName,
+                    profile_pic: profilePic,
+                    room: roomName,
+                })
+            );
+        });
+    </script>
+    {% endblock scripts %}
+</div>
+{% endblock content %}
